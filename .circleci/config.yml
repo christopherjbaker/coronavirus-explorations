@@ -1,0 +1,44 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:12-stretch
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "ed:27:46:fd:a1:a0:19:de:5e:33:d6:46:2c:9f:97:5a"
+      - run:
+          name: Font Awesome Config
+          command: |
+            npm config set "@fortawesome:registry" 'https://npm.fontawesome.com/'
+            npm config set "//npm.fontawesome.com/:_authToken" "$FA_AUTH_TOKEN"
+
+      - checkout
+      - restore_cache:
+          key: node_modules-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install
+          command: npm install --no-save
+      - save_cache:
+          key: node_modules-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
+
+      - run:
+          name: ESLint
+          command: npm run eslint
+      - run:
+          name: Test
+          command: npm run test -- --coverage
+
+      - run:
+          name: Build
+          command: npm run build
+      - deploy:
+          name: Deploy (if master)
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              git config --global user.email $GH_EMAIL
+              git config --global user.name $GH_NAME
+              npm run deploy
+            fi

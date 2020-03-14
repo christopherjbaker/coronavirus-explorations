@@ -1,0 +1,58 @@
+{
+  "name": "coronavirus-model",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "https://christopherjbaker.github.io/coronavirus-model",
+  "scripts": {
+    "eslint": "eslint .",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "deploy": "npm run build && gh-pages -m 'Updates [ci skip]' -d build"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/index.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    }
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-pro": "^5.12.1",
+    "@material-ui/core": "^4.9.5",
+    "@material-ui/lab": "^4.0.0-alpha.45",
+    "chai": "^4.2.0",
+    "classnames": "^2.2.6",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
+    "react-router-dom": "^5.1.2",
+    "react-scripts": "3.4.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/user-event": "^7.2.1",
+    "chai-dom": "^1.8.1",
+    "eslint-config-airbnb": "^18.1.0",
+    "gh-pages": "^2.2.0"
+  }
+}

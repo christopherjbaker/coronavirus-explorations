@@ -1,0 +1,51 @@
+{
+  "root": true,
+  "parser": "babel-eslint",
+  "extends": ["airbnb", "airbnb/hooks"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "jest": true
+  },
+  "rules": {
+    "class-methods-use-this": "off",
+    "guard-for-in": "off",
+    "no-continue": "off",
+    "no-nested-ternary": "off",
+    "no-param-reassign": "off",
+    "no-plusplus": "off",
+    "no-restricted-syntax": "off",
+    "no-shadow": "off",
+    "no-underscore-dangle": "off",
+    "no-use-before-define": "off",
+    "import/prefer-default-export": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/jsx-one-expression-per-line": "off",
+    "react/require-default-props": "off",
+
+    "array-bracket-spacing": [ "error", "always" ],
+    "object-curly-newline": [ "error", {
+      "ObjectExpression": { "multiline": true, "consistent": true },
+      "ObjectPattern": { "multiline": true, "consistent": true },
+      "ImportDeclaration": { "multiline": true, "consistent": true },
+      "ExportDeclaration": { "multiline": true, "consistent": true }
+    } ],
+    "semi": [ "error", "never" ],
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+        "newlines-between": "always-and-inside-groups"
+      }
+    ],
+    "import/no-extraneous-dependencies": [ "error", { "devDependencies": ["**/*.test.js"] } ],
+    "jsx-a11y/label-has-associated-control": [ "error", {
+      "labelComponents": [],
+      "labelAttributes": [],
+      "controlComponents": [],
+      "assert": "either",
+      "depth": 25
+    } ],
+    "react/jsx-filename-extension": [ "error", {"extensions": [".js"]}]
+  }
+}
