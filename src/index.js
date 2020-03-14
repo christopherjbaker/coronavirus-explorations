@@ -5,16 +5,16 @@ import { BrowserRouter, Switch, Route } from 'react-router-dom'
 import ThemeProvider from './components/ThemeProvider/ThemeProvider'
 import Layout from './components/Layout/Layout'
 
-import Landing from './scenes/Landing/Landing'
+import Info from './scenes/Info/Info'
 import NotFound from './scenes/NotFound/NotFound'
 
 ReactDOM.render((
   <BrowserRouter basename={process.env.PUBLIC_URL}>
-    <ThemeProvider isDark>
+    <ThemeProvider isDark={false}>
       <Layout>
         <Switch>
           <Route path="/" exact>
-            <Landing />
+            <Info />
           </Route>
 
           <Route>

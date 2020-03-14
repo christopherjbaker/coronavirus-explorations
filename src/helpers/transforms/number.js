@@ -1,3 +1,7 @@
 export default function toNumber(input, places = 0) {
-  return input.toFixed(places).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+  if (typeof input === 'number') {
+    input = input.toFixed(places)
+  }
+
+  return input.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
