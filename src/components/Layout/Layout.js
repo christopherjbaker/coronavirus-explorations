@@ -14,6 +14,7 @@ import {
 
 const tabs = [
   { label: 'Info', to: '/', exact: true },
+  { label: 'Calculations', to: '/calculations' },
 ]
 
 export default function Layout({ children, ...props }) {

@@ -7,6 +7,7 @@ import Layout from './components/Layout/Layout'
 
 import Info from './scenes/Info/Info'
 import NotFound from './scenes/NotFound/NotFound'
+import Recommendations from './scenes/Recommendations/Recommendations'
 
 ReactDOM.render((
   <BrowserRouter basename={process.env.PUBLIC_URL}>
@@ -15,6 +16,9 @@ ReactDOM.render((
         <Switch>
           <Route path="/" exact>
             <Info />
+          </Route>
+          <Route path="/recommendations" exact>
+            <Recommendations />
           </Route>
 
           <Route>

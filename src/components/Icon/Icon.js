@@ -1,4 +1,4 @@
-import {Icon as BaseIcon} from '@material-ui/core'
+import { Icon as BaseIcon } from '@material-ui/core'
 import cx from 'classnames'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -52,7 +52,7 @@ Icon.propTypes = {
   /** The name of the icon. */
   variant: PropTypes.oneOf(Object.keys(variants)),
   /** The size to show the icon. */
-  color: PropTypes.oneOf(['primary', 'secondary', 'action', 'error', 'disabled']),
+  color: PropTypes.oneOf([ 'primary', 'secondary', 'action', 'error', 'disabled' ]),
   /** The color to show the icon. */
-  size: PropTypes.oneOf(['default', 'small', 'large']),
+  size: PropTypes.oneOf([ 'default', 'small', 'large' ]),
 }
