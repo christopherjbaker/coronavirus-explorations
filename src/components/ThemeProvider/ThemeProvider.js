@@ -2,7 +2,7 @@ import { createMuiTheme, ThemeProvider as MuiThemeProvider } from '@material-ui/
 import PropTypes from 'prop-types'
 import React from 'react'
 
-const baseTheme = {
+const theme = createMuiTheme({
   overrides: {
     MuiTypography: {
       h1: {
@@ -37,22 +37,9 @@ const baseTheme = {
       },
     },
   },
-}
-
-const lightTheme = createMuiTheme({
-  ...baseTheme,
-})
-const darkTheme = createMuiTheme({
-  ...baseTheme,
-  palette: {
-    ...baseTheme.palette,
-    type: 'dark',
-  },
 })
 
-export default function ThemeProvider({ isDark, children }) {
-  const theme = isDark ? darkTheme : lightTheme
-
+export default function ThemeProvider({ children }) {
   return (
     <MuiThemeProvider theme={theme}>
       {children}
@@ -61,8 +48,6 @@ export default function ThemeProvider({ isDark, children }) {
 }
 
 ThemeProvider.propTypes = {
-  /** TEMPORARY. */
-  isDark: PropTypes.bool.isRequired,
   /** Child elements of this component. */
   children: PropTypes.node.isRequired,
 }

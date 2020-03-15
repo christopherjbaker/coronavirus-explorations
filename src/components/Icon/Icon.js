@@ -1,4 +1,4 @@
-import { Icon as BaseIcon } from '@material-ui/core'
+import { Icon as BaseIcon, Tooltip } from '@material-ui/core'
 import cx from 'classnames'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -17,17 +17,29 @@ export default function Icon({
   className,
   name,
   title,
-  label,
   variant,
   color,
   size,
   ...props
 }) {
+  if (title) {
+    return (
+      <Tooltip title={title}>
+        <BaseIcon
+          {...props}
+          aria-hidden={false}
+          className={cx(className, `${variants[variant]} fa-${name}`)}
+          color={color}
+          fontSize={size}
+        />
+      </Tooltip>
+    )
+  }
+
   return (
     <BaseIcon
       {...props}
       aria-hidden={false}
-      title={title || label}
       className={cx(className, `${variants[variant]} fa-${name}`)}
       color={color}
       fontSize={size}
@@ -45,10 +57,8 @@ Icon.propTypes = {
 
   /** The name of the icon. */
   name: PropTypes.string.isRequired,
-  /** The tooltip title. */
+  /** The icon title. */
   title: PropTypes.string,
-  /** The icon label. */
-  label: PropTypes.string,
   /** The name of the icon. */
   variant: PropTypes.oneOf(Object.keys(variants)),
   /** The size to show the icon. */

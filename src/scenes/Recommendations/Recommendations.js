@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 /* eslint-disable max-len */
 import React, { useMemo, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'

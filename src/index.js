@@ -11,7 +11,7 @@ import Recommendations from './scenes/Recommendations/Recommendations'
 
 ReactDOM.render((
   <BrowserRouter basename={process.env.PUBLIC_URL}>
-    <ThemeProvider isDark={false}>
+    <ThemeProvider>
       <Layout>
         <Switch>
           <Route path="/" exact>
