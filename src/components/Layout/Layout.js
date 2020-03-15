@@ -25,7 +25,9 @@ export default function Layout({ children, ...props }) {
   return (
     <Container maxWidth="md" {...props}>
       <CssBaseline />
-      <Typography variant="h1" gutterBottom>Coronavirus Work From Home Model</Typography>
+      <Typography variant="h1" gutterBottom>
+        Coronavirus Group Safety Model
+      </Typography>
 
       <AppBar position="static">
         <Tabs value={tab < 0 ? false : tab}>

@@ -2,9 +2,18 @@ import { createMuiTheme, ThemeProvider as MuiThemeProvider } from '@material-ui/
 import PropTypes from 'prop-types'
 import React from 'react'
 
+const themeDefault = createMuiTheme()
+
 const theme = createMuiTheme({
   overrides: {
     MuiTypography: {
+      root: {
+        'blockquote&': {
+          paddingLeft: themeDefault.spacing(3),
+          borderLeft: `${themeDefault.spacing(0.5)}px solid ${themeDefault.palette.primary.main}`,
+          fontStyle: 'italic',
+        },
+      },
       h1: {
         fontSize: '3.25rem',
         fontWeight: 300,

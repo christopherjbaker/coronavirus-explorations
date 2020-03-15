@@ -1,17 +1,42 @@
 /* istanbul ignore file */
 /* eslint-disable max-len */
+import PropTypes from 'prop-types'
 import React, { useMemo, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Grid, InputAdornment, TextField, Typography } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
+import { Grid, InputAdornment, TextField, Typography } from '@material-ui/core'
 
+import { toNumber } from '../../helpers/transforms'
 import Icon from '../../components/Icon/Icon'
 
+import RecommendationDetails from './components/RecommendationDetails/RecommendationDetails'
+
 const levels = [
-  { test: (threshold, { today }) => today > threshold, severity: 'error', label: 'Close immediately!' },
-  { test: (threshold, { tomorrow }) => tomorrow > threshold, severity: 'warning', label: 'Close before tomorrow.' },
-  { test: (threshold, { week }) => week > threshold, severity: 'info', label: 'Close within a week.' },
-  { test: () => true, severity: 'success', label: 'No need to close this coming week.' },
+  {
+    test: (threshold, { today }) => today > threshold,
+    label: 'Cancel immediately!',
+    severity: 'error',
+  },
+  {
+    test: (threshold, { tomorrow }) => tomorrow > threshold,
+    label: 'Today is within risk tolerance. Cancel for tomorrow.',
+    severity: 'warning',
+  },
+  {
+    test: (threshold, { week }) => week > threshold,
+    label: 'Tomorrow is within risk tolerance, but this week is not. Cancel soon.',
+    severity: 'info',
+  },
+  {
+    test: (threshold, { fortnight }) => fortnight > threshold,
+    label: 'This week is within risk tolerance, but next week is not. Cancel soon.',
+    severity: 'info',
+  },
+  {
+    test: () => true,
+    label: 'The next two weeks are within risk tolerance.',
+    severity: 'success',
+  },
 ]
 
 const useStyles = makeStyles(() => ({
@@ -23,21 +48,27 @@ const useStyles = makeStyles(() => ({
 export default function Recommendations() {
   const classes = useStyles()
 
-  const [ risk, setRisk ] = useState('')
-  const [ employees, setEmployees ] = useState('')
-  const [ population, setPopulation ] = useState('')
-  const [ cases, setCases ] = useState('')
-  const [ deaths, setDeaths ] = useState('')
+  const [ dialog, setDialog ] = useState(null)
+
+  const [ risk, setRisk ] = useState(1)
+  const [ sample, setSample ] = useState(250)
+  const [ population, setPopulation ] = useState(3096633)
+  const [ cases, setCases ] = useState(30)
+  const [ deaths, setDeaths ] = useState(4)
 
   const probabilities = useMemo(() => {
-    if (!employees || !population) return null
-    if (!cases && !deaths) return null
+    if (!sample || !population) return null
 
     return {
-      // cases: cases ? pCases(population, employees, cases) : null,
-      deaths: deaths ? pDeaths(population, employees, deaths) : null,
+      cases: cases ? null : null,
+      // cases: cases ? pCases(population, sample, cases) : null,
+      deaths: deaths ? pDeaths(population, sample, deaths) : null,
     }
-  }, [ employees, population, cases, deaths ])
+  }, [ sample, population, cases, deaths ])
+
+  function handleDialogClose() {
+    setDialog(null)
+  }
 
   const levelCases = risk && probabilities && probabilities.cases && levels.find(({ test }) => test(risk / 100, probabilities.cases))
   const levelDeaths = risk && probabilities && probabilities.deaths && levels.find(({ test }) => test(risk / 100, probabilities.deaths))
@@ -55,6 +86,7 @@ export default function Recommendations() {
                   variant="filled"
                   elevation={6}
                   severity={levelCases.severity}
+                  onClick={() => setDialog('cases')}
                 >
                   {levelCases.label} Click for more information.
                 </Alert>
@@ -74,6 +106,7 @@ export default function Recommendations() {
                   variant="filled"
                   elevation={6}
                   severity={levelDeaths.severity}
+                  onClick={() => setDialog('deaths')}
                 >
                   {levelDeaths.label} Click for more information.
                 </Alert>
@@ -120,14 +153,15 @@ export default function Recommendations() {
         </Grid>
         <Grid item xs={12} sm={4}>
           <TextField
-            id="employees"
+            id="sample"
             type="number"
             fullWidth
-            label="How many employees do you have?"
-            value={employees}
-            onChange={(e) => setEmployees(e.target.value && +e.target.value)}
+            label="What is the size of your sample?"
+            value={sample}
+            onChange={(e) => setSample(e.target.value && +e.target.value)}
             InputLabelProps={{ className: classes.label }}
             InputProps={{
+              inputComponent: CommaNumberInput,
               startAdornment: (
                 <InputAdornment position="start">
                   <Icon name="tally" />
@@ -141,11 +175,12 @@ export default function Recommendations() {
             id="population"
             type="number"
             fullWidth
-            label="What is the area population?"
+            label="What is the size of your population?"
             value={population}
             onChange={(e) => setPopulation(e.target.value && +e.target.value)}
             InputLabelProps={{ className: classes.label }}
             InputProps={{
+              inputComponent: CommaNumberInput,
               startAdornment: (
                 <InputAdornment position="start">
                   <Icon name="globe-americas" />
@@ -165,6 +200,7 @@ export default function Recommendations() {
             onChange={(e) => setCases(e.target.value && +e.target.value)}
             InputLabelProps={{ className: classes.label }}
             InputProps={{
+              inputComponent: CommaNumberInput,
               startAdornment: (
                 <InputAdornment position="start">
                   <Icon name="disease" />
@@ -183,6 +219,7 @@ export default function Recommendations() {
             onChange={(e) => setDeaths(e.target.value && +e.target.value)}
             InputLabelProps={{ className: classes.label }}
             InputProps={{
+              inputComponent: CommaNumberInput,
               startAdornment: (
                 <InputAdornment position="start">
                   <Icon name="skull-crossbones" />
@@ -192,28 +229,90 @@ export default function Recommendations() {
           />
         </Grid>
       </Grid>
+
+      {probabilities && probabilities.deaths && dialog === 'deaths' && (
+        <RecommendationDetails
+          id="deaths"
+          label="Deaths-based"
+          onClose={handleDialogClose}
+          chances={probabilities.deaths}
+        />
+      )}
+      {probabilities && probabilities.cases && dialog === 'cases' && (
+        <RecommendationDetails
+          id="cases"
+          label="Cases-based"
+          onClose={handleDialogClose}
+          chances={probabilities.cases}
+        />
+      )}
     </div>
   )
 }
 
-function pDeaths(population, employees, deaths) {
-  const pFatality = 0.0087
-  const tDeath = 17.3
-  const tDouble = 6.18
+function pDeaths(population, sample, deaths) {
+  const pFatality = 0.008740613457
+  const tDeath = 17.325
+  const tDouble = 6.184
 
   const nCases = deaths / pFatality
 
   const nToday = nCases * 2 ** (tDeath / tDouble)
   const nTomorrow = nToday * 2 ** (1 / tDouble)
   const nWeek = nToday * 2 ** (7 / tDouble)
+  const nFortnight = nToday * 2 ** (14 / tDouble)
 
   const pToday = nToday / population
   const pTomorrow = nTomorrow / population
   const pWeek = nWeek / population
+  const pFortnight = nFortnight / population
 
   return {
-    today: 1 - (1 - pToday) ** employees,
-    tomorrow: 1 - (1 - pTomorrow) ** employees,
-    week: 1 - (1 - pWeek) ** employees,
+    personal: pToday,
+    today: 1 - (1 - pToday) ** sample,
+    tomorrow: 1 - (1 - pTomorrow) ** sample,
+    week: 1 - (1 - pWeek) ** sample,
+    fortnight: 1 - (1 - pFortnight) ** sample,
   }
+}
+
+function CommaNumberInput({ inputRef, onBlur, onFocus, value, ...props }) {
+  const [ editing, setEditing ] = useState(false)
+
+  return editing ? (
+    <input
+      ref={inputRef}
+      {...props}
+      value={value}
+      onFocus={onFocus}
+      // eslint-disable-next-line no-sequences
+      onBlur={(...args) => (setEditing(false), onBlur(...args))}
+    />
+  ) : (
+    <input
+      ref={inputRef}
+      {...props}
+      readOnly
+      type="text"
+      value={toNumber(value)}
+      onBlur={onBlur}
+      // eslint-disable-next-line no-sequences
+      onFocus={(...args) => (setEditing(true), onFocus(...args))}
+    />
+  )
+}
+
+CommaNumberInput.propTypes = {
+  inputRef: PropTypes.oneOfType([
+    // Either a function
+    PropTypes.func,
+    // Or the instance of a DOM native element (see the note about SSR)
+    PropTypes.shape({ current: PropTypes.instanceOf(Element) }),
+  ]),
+  onBlur: PropTypes.func,
+  onFocus: PropTypes.func,
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]).isRequired,
 }
