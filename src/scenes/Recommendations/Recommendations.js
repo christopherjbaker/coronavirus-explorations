@@ -1,12 +1,13 @@
 /* istanbul ignore file */
 /* eslint-disable max-len */
 import PropTypes from 'prop-types'
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Alert } from '@material-ui/lab'
 import { Grid, InputAdornment, TextField, Typography } from '@material-ui/core'
 
 import { toNumber } from '../../helpers/transforms'
+import { useCasesModel, useDeathsModel } from '../../components/ModelProvider/ModelProvider'
 import Icon from '../../components/Icon/Icon'
 
 import RecommendationDetails from './components/RecommendationDetails/RecommendationDetails'
@@ -52,33 +53,26 @@ export default function Recommendations() {
 
   const [ risk, setRisk ] = useState(1)
   const [ sample, setSample ] = useState(250)
-  const [ population, setPopulation ] = useState(3096633)
-  const [ cases, setCases ] = useState(30)
-  const [ deaths, setDeaths ] = useState(4)
+  const [ population, setPopulation ] = useState(3034000)
+  const [ cases, setCases ] = useState(54)
+  const [ deaths, setDeaths ] = useState(1)
 
-  const probabilities = useMemo(() => {
-    if (!sample || !population) return null
-
-    return {
-      cases: cases ? null : null,
-      // cases: cases ? pCases(population, sample, cases) : null,
-      deaths: deaths ? pDeaths(population, sample, deaths) : null,
-    }
-  }, [ sample, population, cases, deaths ])
+  const pCases = useCasesModel(population, sample, cases)
+  const pDeaths = useDeathsModel(population, sample, deaths)
 
   function handleDialogClose() {
     setDialog(null)
   }
 
-  const levelCases = risk && probabilities && probabilities.cases && levels.find(({ test }) => test(risk / 100, probabilities.cases))
-  const levelDeaths = risk && probabilities && probabilities.deaths && levels.find(({ test }) => test(risk / 100, probabilities.deaths))
+  const levelCases = risk && pCases && levels.find(({ test }) => test(risk / 100, pCases))
+  const levelDeaths = risk && pDeaths && levels.find(({ test }) => test(risk / 100, pDeaths))
 
   return (
     <div>
       <Typography variant="h2" gutterBottom>When should you close your office?</Typography>
 
       <Grid container spacing={4}>
-        {risk && probabilities ? (
+        {risk && (pDeaths || pCases) ? (
           <>
             <Grid item xs={12} md={6}>
               {levelCases ? (
@@ -230,20 +224,20 @@ export default function Recommendations() {
         </Grid>
       </Grid>
 
-      {probabilities && probabilities.deaths && dialog === 'deaths' && (
+      {pDeaths && dialog === 'deaths' && (
         <RecommendationDetails
           id="deaths"
           label="Deaths-based"
           onClose={handleDialogClose}
-          chances={probabilities.deaths}
+          chances={pDeaths}
         />
       )}
-      {probabilities && probabilities.cases && dialog === 'cases' && (
+      {pCases && dialog === 'cases' && (
         <RecommendationDetails
           id="cases"
           label="Cases-based"
           onClose={handleDialogClose}
-          chances={probabilities.cases}
+          chances={pCases}
         />
       )}
     </div>
@@ -290,31 +284,4 @@ CommaNumberInput.propTypes = {
     PropTypes.string,
     PropTypes.number,
   ]).isRequired,
-}
-
-
-function pDeaths(population, sample, deaths) {
-  const pFatality = 0.008740613457
-  const tDeath = 17.325
-  const tDouble = 6.184
-
-  const nCases = deaths / pFatality
-
-  const nToday = nCases * 2 ** (tDeath / tDouble)
-  const nTomorrow = nToday * 2 ** (1 / tDouble)
-  const nWeek = nToday * 2 ** (7 / tDouble)
-  const nFortnight = nToday * 2 ** (14 / tDouble)
-
-  const pToday = nToday / population
-  const pTomorrow = nTomorrow / population
-  const pWeek = nWeek / population
-  const pFortnight = nFortnight / population
-
-  return {
-    personal: pToday,
-    today: 1 - (1 - pToday) ** sample,
-    tomorrow: 1 - (1 - pTomorrow) ** sample,
-    week: 1 - (1 - pWeek) ** sample,
-    fortnight: 1 - (1 - pFortnight) ** sample,
-  }
 }
