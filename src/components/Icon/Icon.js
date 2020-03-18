@@ -27,7 +27,7 @@ export default function Icon({
       <Tooltip title={title}>
         <BaseIcon
           {...props}
-          aria-hidden={false}
+          aria-label={title}
           className={cx(className, `${variants[variant]} fa-${name}`)}
           color={color}
           fontSize={size}
@@ -39,7 +39,7 @@ export default function Icon({
   return (
     <BaseIcon
       {...props}
-      aria-hidden={false}
+      aria-label={title}
       className={cx(className, `${variants[variant]} fa-${name}`)}
       color={color}
       fontSize={size}

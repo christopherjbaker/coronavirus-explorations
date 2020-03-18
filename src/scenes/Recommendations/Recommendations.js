@@ -250,31 +250,6 @@ export default function Recommendations() {
   )
 }
 
-function pDeaths(population, sample, deaths) {
-  const pFatality = 0.008740613457
-  const tDeath = 17.325
-  const tDouble = 6.184
-
-  const nCases = deaths / pFatality
-
-  const nToday = nCases * 2 ** (tDeath / tDouble)
-  const nTomorrow = nToday * 2 ** (1 / tDouble)
-  const nWeek = nToday * 2 ** (7 / tDouble)
-  const nFortnight = nToday * 2 ** (14 / tDouble)
-
-  const pToday = nToday / population
-  const pTomorrow = nTomorrow / population
-  const pWeek = nWeek / population
-  const pFortnight = nFortnight / population
-
-  return {
-    personal: pToday,
-    today: 1 - (1 - pToday) ** sample,
-    tomorrow: 1 - (1 - pTomorrow) ** sample,
-    week: 1 - (1 - pWeek) ** sample,
-    fortnight: 1 - (1 - pFortnight) ** sample,
-  }
-}
 
 function CommaNumberInput({ inputRef, onBlur, onFocus, value, ...props }) {
   const [ editing, setEditing ] = useState(false)
@@ -315,4 +290,31 @@ CommaNumberInput.propTypes = {
     PropTypes.string,
     PropTypes.number,
   ]).isRequired,
+}
+
+
+function pDeaths(population, sample, deaths) {
+  const pFatality = 0.008740613457
+  const tDeath = 17.325
+  const tDouble = 6.184
+
+  const nCases = deaths / pFatality
+
+  const nToday = nCases * 2 ** (tDeath / tDouble)
+  const nTomorrow = nToday * 2 ** (1 / tDouble)
+  const nWeek = nToday * 2 ** (7 / tDouble)
+  const nFortnight = nToday * 2 ** (14 / tDouble)
+
+  const pToday = nToday / population
+  const pTomorrow = nTomorrow / population
+  const pWeek = nWeek / population
+  const pFortnight = nFortnight / population
+
+  return {
+    personal: pToday,
+    today: 1 - (1 - pToday) ** sample,
+    tomorrow: 1 - (1 - pTomorrow) ** sample,
+    week: 1 - (1 - pWeek) ** sample,
+    fortnight: 1 - (1 - pFortnight) ** sample,
+  }
 }
