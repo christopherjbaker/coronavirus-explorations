@@ -7,7 +7,7 @@ import { Alert } from '@material-ui/lab'
 import { Grid, InputAdornment, TextField, Typography } from '@material-ui/core'
 
 import { toNumber } from '../../helpers/transforms'
-import { useCasesModel, useDeathsModel } from '../../components/ModelProvider/ModelProvider'
+import { useModel } from '../../components/ModelProvider/ModelProvider'
 import Icon from '../../components/Icon/Icon'
 
 import RecommendationDetails from './components/RecommendationDetails/RecommendationDetails'
@@ -52,69 +52,35 @@ export default function Recommendations() {
   const [ dialog, setDialog ] = useState(null)
 
   const [ risk, setRisk ] = useState(1)
-  const [ sample, setSample ] = useState(250)
-  const [ population, setPopulation ] = useState(3034000)
-  const [ cases, setCases ] = useState(54)
+  const [ sample, setSample ] = useState(120)
+  const [ population, setPopulation ] = useState(248853)
+  const [ cases, setCases ] = useState(12)
   const [ deaths, setDeaths ] = useState(1)
 
-  const pCases = useCasesModel(population, sample, cases)
-  const pDeaths = useDeathsModel(population, sample, deaths)
+  const pCases = useModel(sample, population, { cases, deaths })
 
   function handleDialogClose() {
     setDialog(null)
   }
 
-  const levelCases = risk && pCases && levels.find(({ test }) => test(risk / 100, pCases))
-  const levelDeaths = risk && pDeaths && levels.find(({ test }) => test(risk / 100, pDeaths))
+  const level = risk && pCases && levels.find(({ test }) => test(risk / 100, pCases))
 
   return (
     <div>
-      <Typography variant="h2" gutterBottom>When should you close your office?</Typography>
+      <Typography variant="h2" gutterBottom>How safe is your group?</Typography>
 
-      <Grid container spacing={4}>
-        {risk && (pDeaths || pCases) ? (
-          <>
-            <Grid item xs={12} md={6}>
-              {levelCases ? (
-                <Alert
-                  variant="filled"
-                  elevation={6}
-                  severity={levelCases.severity}
-                  onClick={() => setDialog('cases')}
-                >
-                  {levelCases.label} Click for more information.
-                </Alert>
-              ) : (
-                <Alert
-                  variant="standard"
-                  elevation={6}
-                  severity="info"
-                >
-                  Enter the number of cases for a recommendation.
-                </Alert>
-              )}
-            </Grid>
-            <Grid item xs={12} md={6}>
-              {levelDeaths ? (
-                <Alert
-                  variant="filled"
-                  elevation={6}
-                  severity={levelDeaths.severity}
-                  onClick={() => setDialog('deaths')}
-                >
-                  {levelDeaths.label} Click for more information.
-                </Alert>
-              ) : (
-                <Alert
-                  variant="standard"
-                  elevation={6}
-                  severity="info"
-                >
-                  Enter the number of deaths for a recommendation.
-                </Alert>
-              )}
-            </Grid>
-          </>
+      <Grid container spacing={3}>
+        {level ? (
+          <Grid item xs={12}>
+            <Alert
+              variant="filled"
+              elevation={6}
+              severity={level.severity}
+              onClick={() => setDialog('details')}
+            >
+              {level.label} Click for more information.
+            </Alert>
+          </Grid>
         ) : (
           <Grid item xs={12}>
             <Alert
@@ -127,115 +93,110 @@ export default function Recommendations() {
           </Grid>
         )}
 
-        <Grid item xs={12} sm={4}>
-          <TextField
-            id="risk"
-            type="number"
-            fullWidth
-            label="What risk are you willing to take?"
-            value={risk}
-            onChange={(e) => setRisk(e.target.value && +e.target.value)}
-            InputLabelProps={{ className: classes.label }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Icon name="percent" />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <TextField
-            id="sample"
-            type="number"
-            fullWidth
-            label="What is the size of your sample?"
-            value={sample}
-            onChange={(e) => setSample(e.target.value && +e.target.value)}
-            InputLabelProps={{ className: classes.label }}
-            InputProps={{
-              inputComponent: CommaNumberInput,
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Icon name="tally" />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <TextField
-            id="population"
-            type="number"
-            fullWidth
-            label="What is the size of your population?"
-            value={population}
-            onChange={(e) => setPopulation(e.target.value && +e.target.value)}
-            InputLabelProps={{ className: classes.label }}
-            InputProps={{
-              inputComponent: CommaNumberInput,
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Icon name="globe-americas" />
-                </InputAdornment>
-              ),
-            }}
-          />
+        <Grid item container direction="column" xs={12} sm={6} spacing={3}>
+          <Grid item>
+            <TextField
+              id="risk"
+              type="number"
+              fullWidth
+              label="What risk are you willing to take?"
+              value={risk}
+              onChange={(e) => setRisk(e.target.value && +e.target.value)}
+              InputLabelProps={{ className: classes.label }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Icon name="percent" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <TextField
+              id="sample"
+              type="number"
+              fullWidth
+              label="What is the size of your sample?"
+              value={sample}
+              onChange={(e) => setSample(e.target.value && +e.target.value)}
+              InputLabelProps={{ className: classes.label }}
+              InputProps={{
+                inputComponent: CommaNumberInput,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Icon name="tally" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <TextField
+              id="population"
+              type="number"
+              fullWidth
+              label="What is the size of your population?"
+              value={population}
+              onChange={(e) => setPopulation(e.target.value && +e.target.value)}
+              InputLabelProps={{ className: classes.label }}
+              InputProps={{
+                inputComponent: CommaNumberInput,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Icon name="globe-americas" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
-          <TextField
-            id="cases"
-            type="number"
-            fullWidth
-            label="Total cases as of today"
-            value={cases}
-            onChange={(e) => setCases(e.target.value && +e.target.value)}
-            InputLabelProps={{ className: classes.label }}
-            InputProps={{
-              inputComponent: CommaNumberInput,
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Icon name="disease" />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            id="deaths"
-            type="number"
-            fullWidth
-            label="Total deaths as of today"
-            value={deaths}
-            onChange={(e) => setDeaths(e.target.value && +e.target.value)}
-            InputLabelProps={{ className: classes.label }}
-            InputProps={{
-              inputComponent: CommaNumberInput,
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Icon name="skull-crossbones" />
-                </InputAdornment>
-              ),
-            }}
-          />
+        <Grid item container direction="column" xs={12} sm={6} spacing={3}>
+          <Grid item>
+            <TextField
+              id="cases"
+              type="number"
+              fullWidth
+              label="Total cases as of today"
+              value={cases}
+              onChange={(e) => setCases(e.target.value && +e.target.value)}
+              InputLabelProps={{ className: classes.label }}
+              InputProps={{
+                inputComponent: CommaNumberInput,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Icon name="disease" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <TextField
+              id="deaths"
+              type="number"
+              fullWidth
+              label="Total deaths as of today"
+              value={deaths}
+              onChange={(e) => setDeaths(e.target.value && +e.target.value)}
+              InputLabelProps={{ className: classes.label }}
+              InputProps={{
+                inputComponent: CommaNumberInput,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Icon name="skull-crossbones" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
         </Grid>
       </Grid>
 
-      {pDeaths && dialog === 'deaths' && (
+      {pCases && dialog === 'details' && (
         <RecommendationDetails
-          id="deaths"
-          label="Deaths-based"
-          onClose={handleDialogClose}
-          chances={pDeaths}
-        />
-      )}
-      {pCases && dialog === 'cases' && (
-        <RecommendationDetails
-          id="cases"
-          label="Cases-based"
+          id="details"
           onClose={handleDialogClose}
           chances={pCases}
         />

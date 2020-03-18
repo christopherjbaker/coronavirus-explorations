@@ -14,7 +14,7 @@ import {
 
 import { toPercent, getSigfigs } from '../../../../helpers/transforms'
 
-export default function RecommendationDetails({ id, label, onClose, chances }) {
+export default function RecommendationDetails({ id, onClose, chances }) {
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'))
 
@@ -27,7 +27,7 @@ export default function RecommendationDetails({ id, label, onClose, chances }) {
       aria-describedby={`dialog-${id}-description`}
     >
       <DialogTitle id={`dialog-${id}-title`}>
-        Details of {label} Model Recommendations
+        Details of Model Recommendations
       </DialogTitle>
       <DialogContent id={`dialog-${id}-description`}>
         <Typography paragraph>
@@ -55,7 +55,6 @@ export default function RecommendationDetails({ id, label, onClose, chances }) {
 
 RecommendationDetails.propTypes = {
   id: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,
   chances: PropTypes.shape({
     personal: PropTypes.number.isRequired,
