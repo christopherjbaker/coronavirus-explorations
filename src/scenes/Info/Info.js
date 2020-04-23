@@ -5,11 +5,9 @@ import { Typography } from '@material-ui/core'
 export default function Info() {
   return (
     <div>
-      <Typography variant="h2" gutterBottom>Model Information</Typography>
-      <Typography paragraph>This model should help you and your company make a decision on whether you should open your office or send everybody home. It also applies to events and gatherings, helping make a decision on whether the event is safe or not.</Typography>
-      <Typography paragraph>It‘s based on how many cases are probably in your area, and the likelihood that at least one of your group members catches it. It has lots of assumptions, but all the data is here so you can play with the assumptions to adapt them to your situation. You only <strong>need</strong> to make changes to the Recommendations tab; the rest are data inputs that you can change to adjust the model.</Typography>
-      <Typography paragraph>This tool is based on the work of <a href="https://twitter.com/tomaspueyo" target="_blank" rel="noopener noreferrer">Tomas Pueyo</a> in his article <a href="https://medium.com/@tomaspueyo/coronavirus-act-today-or-people-will-die-f4d3d9cd99ca" target="_blank" rel="noopener noreferrer">Coronavirus: Why You Must Act Now</a>. Please leave comments to improve it.</Typography>
-      <Typography component="blockquote">This tool does not provide medical advice. It is intended for informational purposes only. It is not a substitute for professional medical advice, diagnosis or treatment. If you think you may have a medical emergency, immediately call your doctor or dial 911.</Typography>
+      <Typography variant="h2" gutterBottom>Project Information</Typography>
+      <Typography paragraph>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</Typography>
+      <Typography component="blockquote">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.</Typography>
     </div>
   )
 }

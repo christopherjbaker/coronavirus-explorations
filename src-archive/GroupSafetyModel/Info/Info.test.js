@@ -8,6 +8,6 @@ describe('Scenes / Info', () => {
   it('works', () => {
     const { getByText } = renderWithRouter(<Info />)
 
-    getByText('Project Information')
+    getByText('Model Information')
   })
 })

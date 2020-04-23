@@ -12,12 +12,7 @@ import {
   Typography,
 } from '@material-ui/core'
 
-const tabs = [
-  { label: 'Info', to: '/', exact: true },
-  { label: 'Recommendations', to: '/recommendations' },
-]
-
-export default function Layout({ children, ...props }) {
+export default function Layout({ title, tabs, children, ...props }) {
   const { pathname } = useLocation()
 
   const tab = tabs.findIndex(({ to: path, ...props }) => matchPath(pathname, { path, ...props }))
@@ -25,9 +20,7 @@ export default function Layout({ children, ...props }) {
   return (
     <Container maxWidth="md" {...props}>
       <CssBaseline />
-      <Typography variant="h1" gutterBottom>
-        Coronavirus Group Safety Model
-      </Typography>
+      <Typography variant="h1" gutterBottom>{title}</Typography>
 
       <AppBar position="static">
         <Tabs value={tab < 0 ? false : tab}>
@@ -52,5 +45,11 @@ export default function Layout({ children, ...props }) {
 }
 
 Layout.propTypes = {
+  title: PropTypes.string.isRequired,
+  tabs: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    to: PropTypes.string.isRequire,
+    exact: PropTypes.bool,
+  })).isRequired,
   children: PropTypes.node.isRequired,
 }

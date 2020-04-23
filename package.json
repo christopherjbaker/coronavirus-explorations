@@ -1,8 +1,8 @@
 {
-  "name": "coronavirus-model",
+  "name": "coronavirus-explorations",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://christopherjbaker.github.io/coronavirus-model",
+  "homepage": "https://christopherjbaker.github.io/coronavirus-explorations",
   "scripts": {
     "eslint": "eslint .",
     "start": "react-scripts start",
