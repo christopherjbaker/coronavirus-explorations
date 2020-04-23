@@ -4,9 +4,7 @@ import { Link as RouterLink, useLocation, matchPath } from 'react-router-dom'
 import {
   CssBaseline,
   AppBar,
-  Box,
   Container,
-  Paper,
   Tabs,
   Tab,
   Typography,
@@ -35,11 +33,7 @@ export default function Layout({ title, tabs, children, ...props }) {
         </Tabs>
       </AppBar>
 
-      <Paper>
-        <Box p={3}>
-          {children}
-        </Box>
-      </Paper>
+      {children}
     </Container>
   )
 }

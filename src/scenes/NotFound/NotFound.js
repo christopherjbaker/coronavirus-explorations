@@ -2,10 +2,11 @@ import React from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { Button, Typography } from '@material-ui/core'
 
+import Page from '../../shared/components/Page/Page'
+
 export default function NotFound() {
   return (
-    <div>
-      <Typography variant="h2" gutterBottom>Oops! Page Not Found</Typography>
+    <Page title="Oops! Page Not Found">
       <Typography paragraph>
         Something went wrong. The page you are looking for could not be found.
       </Typography>
@@ -19,6 +20,6 @@ export default function NotFound() {
           Go Home
         </Button>
       </Typography>
-    </div>
+    </Page>
   )
 }

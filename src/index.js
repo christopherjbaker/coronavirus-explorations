@@ -1,8 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
+import { ThemeProvider } from '@material-ui/core/styles'
 
-import ThemeProvider from './components/ThemeProvider/ThemeProvider'
+import theme from './theme'
 import Layout from './components/Layout/Layout'
 
 import Info from './scenes/Info/Info'
@@ -10,7 +11,7 @@ import NotFound from './scenes/NotFound/NotFound'
 
 ReactDOM.render((
   <BrowserRouter basename={process.env.PUBLIC_URL}>
-    <ThemeProvider>
+    <ThemeProvider theme={theme}>
       <Layout
         title="Coronavirus Explorations"
         tabs={[
