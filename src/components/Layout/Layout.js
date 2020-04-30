@@ -12,7 +12,6 @@ import {
 
 export default function Layout({ title, tabs, children, ...props }) {
   const { pathname } = useLocation()
-
   const tab = tabs.findIndex(({ to: path, ...props }) => matchPath(pathname, { path, ...props }))
 
   return (
@@ -21,7 +20,7 @@ export default function Layout({ title, tabs, children, ...props }) {
       <Typography variant="h1" gutterBottom>{title}</Typography>
 
       <AppBar position="static">
-        <Tabs value={tab < 0 ? false : tab}>
+        <Tabs aria-label="navigation" value={tab < 0 ? false : tab}>
           {tabs.map(({ label, to }) => (
             <Tab
               key={to}

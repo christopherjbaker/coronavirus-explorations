@@ -8,6 +8,7 @@ import Layout from './components/Layout/Layout'
 
 import Info from './scenes/Info/Info'
 import NotFound from './scenes/NotFound/NotFound'
+import Trajectory from './scenes/Trajectory/Trajectory'
 
 ReactDOM.render((
   <BrowserRouter basename={process.env.PUBLIC_URL}>
@@ -16,11 +17,15 @@ ReactDOM.render((
         title="Coronavirus Explorations"
         tabs={[
           { label: 'Info', to: '/', exact: true },
+          { label: 'Trajectory', to: '/trajectory' },
         ]}
       >
         <Switch>
           <Route path="/" exact>
             <Info />
+          </Route>
+          <Route path="/trajectory">
+            <Trajectory />
           </Route>
 
           <Route>
