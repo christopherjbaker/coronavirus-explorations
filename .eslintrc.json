@@ -1,7 +1,7 @@
 {
   "root": true,
   "parser": "babel-eslint",
-  "extends": ["airbnb", "airbnb/hooks"],
+  "extends": [ "airbnb", "airbnb/hooks", "plugin:lodash-fp/recommended" ],
   "env": {
     "browser": true,
     "node": true,
@@ -34,11 +34,11 @@
     "import/order": [
       "error",
       {
-        "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+        "groups": [ "builtin", "external", "internal", "parent", "sibling", "index" ],
         "newlines-between": "always-and-inside-groups"
       }
     ],
-    "import/no-extraneous-dependencies": [ "error", { "devDependencies": ["**/*.test.js"] } ],
+    "import/no-extraneous-dependencies": [ "error", { "devDependencies": [ "**/*.test.js" ] } ],
     "jsx-a11y/label-has-associated-control": [ "error", {
       "labelComponents": [],
       "labelAttributes": [],
@@ -46,6 +46,6 @@
       "assert": "either",
       "depth": 25
     } ],
-    "react/jsx-filename-extension": [ "error", {"extensions": [".js"]}]
+    "react/jsx-filename-extension": [ "error", { "extensions": [ ".js" ] } ]
   }
 }

@@ -1,37 +1,74 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from 'react'
 import { Typography } from '@material-ui/core'
+import _ from 'lodash/fp'
 import * as d3 from 'd3'
 
-import useCounts from '../../shared/stores/counts'
+import { fetchCounts } from '../../shared/services/counts'
 import Page from '../../shared/components/Page/Page'
+
+const LIMIT = 7
 
 export default function Trajectory() {
   const [ data, setData ] = useState(null)
-  const dataAll = useCounts('states')
 
   useEffect(() => {
-    if (!dataAll) return setData(null)
+    (async () => {
+      const dataRaw = await fetchCounts('states')
+      const data = _.filter(({ state }) => state === 'Nevada', dataRaw)
 
-    let lastCache = null
+      const firstIndex = LIMIT === 7 ? _.findIndex(({ date }) => date.getDay() === 0, data) : 0
+      const lastIndex = firstIndex + LIMIT * Math.floor((data.length - firstIndex) / LIMIT)
 
-    return setData(dataAll
-      .filter(({ state }) => state === 'Nevada')
-      .map(({ date, cases }, index) => {
-        const last = lastCache
-        lastCache = cases
-        if (index === 0) {
-          return null
-        }
+      let lastCasesCache = null
 
-        return {
-          date,
-          total: cases,
-          growth: cases - last,
-        }
-      })
-      .filter((point) => point))
-  }, [ dataAll ])
+      const counts = _.flow([
+        _.slice(firstIndex, lastIndex + 1),
+        _.filter(isNth(LIMIT)),
+        _.map(({ date, cases }) => {
+          if (lastCasesCache === null) {
+            lastCasesCache = cases
+            return null
+          }
+
+          const lastCases = lastCasesCache
+          lastCasesCache = cases
+
+          return {
+            date,
+            total: cases,
+            growth: cases - lastCases,
+          }
+        }),
+        _.compact,
+      ])(data)
+
+      const extrapolated = lastIndex < data.length - 1 && (() => {
+        const previous = _.last(counts)
+        const point = _.last(data)
+
+        const correction = LIMIT / (data.length - lastIndex - 1)
+        const growth = point.cases - previous.total
+        const projectedGrowth = growth * correction
+
+        return [
+          {
+            date: point.date,
+            total: point.cases,
+            growth: previous.growth * (1 - 1 / correction) + growth,
+            type: 'intermediate',
+          },
+          {
+            date: new Date(previous.date.valueOf() + LIMIT * 24 * 60 * 60 * 1000),
+            total: previous.total + projectedGrowth,
+            growth: projectedGrowth,
+            type: 'extrapolated',
+          },
+        ]
+      })()
+
+      setData(extrapolated ? _.concat(counts, extrapolated) : counts)
+    })()
+  }, [])
 
   if (!data) return null
 
@@ -50,11 +87,11 @@ export default function Trajectory() {
     .domain(d3.extent(data, getY)).nice()
     .range([ height - margin.bottom, margin.top ])
 
-  const xTicks = xScale.ticks(10)
-  const yTicks = yScale.ticks(10)
+  // const xTicks = xScale.ticks(10)
+  // const yTicks = yScale.ticks(10)
 
-  const xFormat = xScale.tickFormat(10)
-  const yFormat = yScale.tickFormat(10)
+  // const xFormat = xScale.tickFormat(10)
+  // const yFormat = yScale.tickFormat(10)
 
   const line = d3.line()
     .curve(d3.curveCatmullRom)
@@ -62,7 +99,7 @@ export default function Trajectory() {
     .y((point) => yScale(getY(point)))
 
   const transition = d3.transition()
-    .duration(5000)
+    .duration(500)
     .ease(d3.easeLinear)
 
   // https://github.com/d3/d3/blob/master/API.md
@@ -98,17 +135,7 @@ function animate(transition, attribute, start, end) {
   }
 }
 
-function animate2(length) {
-  let timer = null
-
-  return (ref) => {
-    if (!ref) {
-      timer = clearTimeout(timer)
-    }
-
-    const start = Date.now()
-    timer = setTimeout(() => {
-      ref.setAttribute('strokeDasharray', `${length},${length}`)
-    }, 1000 / 30)
-  }
+function isNth(n) {
+  let i = 0
+  return () => i++ % n === 0
 }

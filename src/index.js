@@ -18,6 +18,7 @@ ReactDOM.render((
         tabs={[
           { label: 'Info', to: '/', exact: true },
           { label: 'Trajectory', to: '/trajectory' },
+          // { label: 'Growth Factor', to: '/growth-factor' }, // https://youtu.be/Kas0tIxDvrg?t=333
         ]}
       >
         <Switch>

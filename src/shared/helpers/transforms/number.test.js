@@ -16,10 +16,11 @@ describe('Helpers / Transforms / toNumber', () => {
   })
 
   it('works with function places', () => {
+    // eslint-disable-next-line lodash-fp/prefer-constant
     function getDecimalPlaces() {
       return 3
     }
 
-    expect(toNumber(1000.5, getDecimalPlaces)).to.equal('1,000.500')
+    expect(toNumber(1000.5, (getDecimalPlaces))).to.equal('1,000.500')
   })
 })
