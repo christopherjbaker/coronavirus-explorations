@@ -9,66 +9,39 @@ import Page from '../../shared/components/Page/Page'
 const LIMIT = 7
 
 export default function Trajectory() {
+  const [ dataRaw, setDataRaw ] = useState(null)
   const [ data, setData ] = useState(null)
 
   useEffect(() => {
-    (async () => {
-      const dataRaw = await fetchCounts('states')
-      const data = _.filter(({ state }) => state === 'Nevada', dataRaw)
-
-      const firstIndex = LIMIT === 7 ? _.findIndex(({ date }) => date.getDay() === 0, data) : 0
-      const lastIndex = firstIndex + LIMIT * Math.floor((data.length - firstIndex) / LIMIT)
-
-      let lastCasesCache = null
-
-      const counts = _.flow([
-        _.slice(firstIndex, lastIndex + 1),
-        _.filter(isNth(LIMIT)),
-        _.map(({ date, cases }) => {
-          if (lastCasesCache === null) {
-            lastCasesCache = cases
-            return null
-          }
-
-          const lastCases = lastCasesCache
-          lastCasesCache = cases
-
-          return {
-            date,
-            total: cases,
-            growth: cases - lastCases,
-          }
-        }),
-        _.compact,
-      ])(data)
-
-      const extrapolated = lastIndex < data.length - 1 && (() => {
-        const previous = _.last(counts)
-        const point = _.last(data)
-
-        const correction = LIMIT / (data.length - lastIndex - 1)
-        const growth = point.cases - previous.total
-        const projectedGrowth = growth * correction
-
-        return [
-          {
-            date: point.date,
-            total: point.cases,
-            growth: previous.growth * (1 - 1 / correction) + growth,
-            type: 'intermediate',
-          },
-          {
-            date: new Date(previous.date.valueOf() + LIMIT * 24 * 60 * 60 * 1000),
-            total: previous.total + projectedGrowth,
-            growth: projectedGrowth,
-            type: 'extrapolated',
-          },
-        ]
-      })()
-
-      setData(extrapolated ? _.concat(counts, extrapolated) : counts)
-    })()
+    fetchCounts('states').then(setDataRaw)
   }, [])
+
+  useEffect(() => {
+    if (!dataRaw) {
+      return
+    }
+
+    setData(_.flow([
+      _.groupBy('state'),
+      _.mapValues(processData),
+      _.set('_', _.flow([
+        _.groupBy('date'),
+        _.map((items) => ({
+          date: items[0].date,
+          cases: _.flow([
+            _.map(_.get('cases')),
+            _.sum,
+          ])(items),
+          deaths: _.flow([
+            _.map(_.get('deaths')),
+            _.sum,
+          ])(items),
+        })),
+        // _.filter((item) => item.cases > 20),
+        processData,
+      ])(dataRaw)),
+    ])(dataRaw))
+  }, [ dataRaw ])
 
   if (!data) return null
 
@@ -76,15 +49,15 @@ export default function Trajectory() {
   const height = Math.round(width * ((Math.sqrt(5) - 1) / 2))
   const margin = { top: 20, right: 20, bottom: 30, left: 40 }
 
-  const getX = (point) => point.total
-  const getY = (point) => point.growth
+  const getX = (point) => Math.max(point.total, 1)
+  const getY = (point) => Math.max(point.growth, 1)
 
-  const xScale = d3.scaleLinear()
-    .domain(d3.extent(data, getX)).nice()
+  const xScale = d3.scaleLog()
+    .domain([ 1, d3.max(data._, getX) ])
     .range([ margin.left, width - margin.right ])
 
-  const yScale = d3.scaleLinear()
-    .domain(d3.extent(data, getY)).nice()
+  const yScale = d3.scaleLog()
+    .domain([ 1, d3.max(data._, getY) ])
     .range([ height - margin.bottom, margin.top ])
 
   // const xTicks = xScale.ticks(10)
@@ -113,8 +86,8 @@ export default function Trajectory() {
           strokeWidth="2.5"
           strokeLinejoin="round"
           strokeLinecap="round"
-          d={line(data)}
-          ref={animate(transition, 'stroke-dasharray', 0, length(line(data)))}
+          d={line(data._)}
+          ref={animate(transition, 'stroke-dasharray', 0, length(line(data._)))}
         />
       </svg>
 
@@ -123,11 +96,69 @@ export default function Trajectory() {
   )
 }
 
+function processData(data) {
+  const firstIndex = LIMIT === 7 ? _.findIndex(({ date }) => date.getDay() === 0, data) : 0
+  const lastIndex = firstIndex + LIMIT * Math.floor((data.length - firstIndex) / LIMIT)
+
+  let lastCasesCache = null
+
+  const counts = _.flow([
+    _.slice(firstIndex, lastIndex + 1),
+    _.filter(isNth(LIMIT)),
+    _.map(({ date, cases }) => {
+      if (lastCasesCache === null) {
+        lastCasesCache = cases
+        return null
+      }
+
+      const lastCases = lastCasesCache
+      lastCasesCache = cases
+
+      return {
+        date,
+        total: cases,
+        growth: cases - lastCases,
+      }
+    }),
+    _.compact,
+  ])(data)
+
+  const extrapolated = lastIndex < data.length - 1 && (() => {
+    const previous = _.last(counts)
+    const point = _.last(data)
+
+    const correction = LIMIT / (data.length - lastIndex - 1)
+    const growth = point.cases - previous.total
+    const projectedGrowth = growth * correction
+
+    return _.compact([
+      {
+        date: point.date,
+        total: point.cases,
+        growth: previous.growth * (1 - 1 / correction) + growth,
+        type: 'intermediate',
+      },
+      false && {
+        date: new Date(previous.date.valueOf() + LIMIT * 24 * 60 * 60 * 1000),
+        total: previous.total + projectedGrowth,
+        growth: projectedGrowth,
+        type: 'extrapolated',
+      },
+    ])
+  })()
+
+  return extrapolated ? _.concat(counts, extrapolated) : counts
+}
+
 function length(path) {
   return d3.create('svg:path').attr('d', path).node().getTotalLength()
 }
 
 function animate(transition, attribute, start, end) {
+  transition = d3.transition()
+    .duration(500)
+    .ease(d3.easeLinear)
+
   return (ref) => {
     transition.tween('', () => (value) => {
       ref.setAttribute(attribute, `${start + (end - start) * value},${end}`)
