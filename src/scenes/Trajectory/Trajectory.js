@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Typography } from '@material-ui/core'
 import _ from 'lodash/fp'
 import * as d3 from 'd3'
@@ -37,37 +37,65 @@ export default function Trajectory() {
     })
   }, [])
 
+  const {
+    width,
+    height,
+    makeLine,
+    color,
+    // xTicks,
+    // yTicks,
+    // xFormat,
+    // yFormat,
+    master,
+  } = useMemo(() => {
+    if (!data) return {}
+
+    const master = data._
+
+    const width = 864
+    const height = Math.round(width * ((Math.sqrt(5) - 1) / 2))
+    const margin = { top: 20, right: 20, bottom: 30, left: 40 }
+
+    const getX = (point) => Math.max(point.total, 1)
+    const getY = (point) => Math.max(point.growth, 1)
+
+    const xScale = d3.scaleLog()
+      .domain([ 1, d3.max(master, getX) ])
+      .range([ margin.left, width - margin.right ])
+
+    const yScale = d3.scaleLog()
+      .domain([ 1, d3.max(master, getY) ])
+      .range([ height - margin.bottom, margin.top ])
+
+    const makeLine = d3.line()
+      .curve(d3.curveCatmullRom)
+      .x((point) => xScale(getX(point)))
+      .y((point) => yScale(getY(point)))
+
+    const color = d3.scaleOrdinal()
+      .domain(Object.keys(data))
+      .range(d3.schemeCategory10)
+
+    const xTicks = xScale.ticks(10)
+    const yTicks = yScale.ticks(10)
+
+    const xFormat = xScale.tickFormat(10)
+    const yFormat = yScale.tickFormat(10)
+
+    return {
+      width,
+      height,
+      makeLine,
+      color,
+      xTicks,
+      yTicks,
+      xFormat,
+      yFormat,
+      master,
+    }
+  }, [ data ])
+
   if (!data) return null
-  const master = data._
-
-  const width = 864
-  const height = Math.round(width * ((Math.sqrt(5) - 1) / 2))
-  const margin = { top: 20, right: 20, bottom: 30, left: 40 }
-
-  const getX = (point) => Math.max(point.total, 1)
-  const getY = (point) => Math.max(point.growth, 1)
-
-  const xScale = d3.scaleLog()
-    .domain([ 1, d3.max(master, getX) ])
-    .range([ margin.left, width - margin.right ])
-
-  const yScale = d3.scaleLog()
-    .domain([ 1, d3.max(master, getY) ])
-    .range([ height - margin.bottom, margin.top ])
-
-  const colorScale = d3.scaleOrdinal(d3.schemeCategory10)
-    .domain(Object.keys(data))
-
-  // const xTicks = xScale.ticks(10)
-  // const yTicks = yScale.ticks(10)
-
-  // const xFormat = xScale.tickFormat(10)
-  // const yFormat = yScale.tickFormat(10)
-
-  const line = d3.line()
-    .curve(d3.curveCatmullRom)
-    .x((point) => xScale(getX(point)))
-    .y((point) => yScale(getY(point)))
 
   // https://github.com/d3/d3/blob/master/API.md
   // https://observablehq.com/@d3/connected-scatterplot
@@ -79,12 +107,12 @@ export default function Trajectory() {
             key={state}
             state={state}
             fill="none"
-            stroke={colorScale(state)}
+            stroke={color(state)}
             strokeWidth="2.5"
             strokeLinejoin="round"
             strokeLinecap="round"
-            d={line(data)}
-            ref={animate(line, data, master)}
+            d={makeLine(data)}
+            ref={animate(makeLine, data, master)}
           />
         ))}
       </svg>
@@ -152,8 +180,8 @@ function getLength(path) {
   return d3.create('svg:path').attr('d', path).node().getTotalLength()
 }
 
-function animate(line, data, master) {
-  const end = getLength(line(data))
+function animate(makeLine, data, master) {
+  const end = getLength(makeLine(data))
 
   const fromDate = d3.scaleLinear()
     .domain(d3.extent(master, (point) => point.date))
@@ -164,7 +192,7 @@ function animate(line, data, master) {
 
   const ease = d3.scaleLinear()
     .domain(data.map((point) => fromDate(point.date)))
-    .range(data.map((point, index) => fromLength(getLength(line(data.slice(0, index))))))
+    .range(data.map((point, index) => fromLength(getLength(makeLine(data.slice(0, index))))))
 
   return (ref) => {
     if (ref) {
