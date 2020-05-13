@@ -15,8 +15,13 @@ export default function Trajectory() {
   window.page_data = data
 
   useEffect(() => {
-    fetchCounts('states').then(
-      (data) => setData(cleanupData(data, [ '_', 'Nevada' ])),
+    fetchCounts('counties').then(
+      (data) => setData(cleanupData(
+        data,
+        (row) => `${row.state}, ${row.county}`,
+        (row) => row.state === 'Nevada',
+        [ 'Nevada, Washoe', 'Nevada, Clark' ],
+      )),
     )
   }, [])
 
@@ -36,7 +41,7 @@ export default function Trajectory() {
   // https://github.com/d3/d3/blob/master/API.md
   // https://observablehq.com/@d3/connected-scatterplot
   return (
-    <Page title="Growth Per Infection">
+    <Page title="Coronavirus Trajectory">
       <svg viewBox={[ 0, 0, width, height ]}>
         <AxisX
           scale={xScale}

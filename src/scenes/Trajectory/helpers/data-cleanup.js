@@ -2,11 +2,17 @@ import _ from 'lodash/fp'
 
 const LIMIT = 7
 
-export default function cleanupData(data, pick) {
+export default function cleanupData(data, groupBy, filter, pick) {
   return _.flow([
-    _.groupBy('state'),
+    _.filter((row) => row.county !== 'Unknown'),
+    _.isFunction(filter) ? _.filter(filter) : _.identity,
+    _.groupBy(groupBy),
+    _.isArray(pick) ? _.pick(pick) : _.identity,
+    _.isFunction(pick) ? _.pickBy(pick) : _.identity,
+    _.mapValues(makeDaily),
     _.mapValues(processData),
     _.set('_', _.flow([
+      _.isFunction(filter) ? _.filter(filter) : _.identity,
       _.groupBy('date'),
       _.values,
       _.map((items) => ({
@@ -23,8 +29,34 @@ export default function cleanupData(data, pick) {
       // _.filter((item) => item.cases > 20),
       processData,
     ])(data)),
-    pick ? _.pick(pick) : _.identity,
   ])(data)
+}
+
+const DAY = 24 * 60 * 60 * 1000
+function makeDaily(data) {
+  return _.reduce((data, item) => {
+    if (!data.length) {
+      return [ item ]
+    }
+
+    const last = _.last(data)
+    const start = last.date.valueOf()
+    const end = item.date.valueOf()
+
+    if (end - start === DAY) {
+      return _.concat(data, item)
+    }
+
+    return _.flow([
+      () => _.rangeStep(DAY, start + DAY, end),
+      _.map((date) => ({
+        ...last,
+        date: new Date(date),
+      })),
+      _.concat(_, item),
+      _.concat(data),
+    ])()
+  }, [], data)
 }
 
 function processData(data) {

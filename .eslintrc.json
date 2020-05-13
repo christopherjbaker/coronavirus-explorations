@@ -22,6 +22,7 @@
     "react/jsx-props-no-spreading": "off",
     "react/jsx-one-expression-per-line": "off",
     "react/require-default-props": "off",
+    "lodash-fp/no-extraneous-function-wrapping": "off",
 
     "array-bracket-spacing": [ "error", "always" ],
     "object-curly-newline": [ "error", {
