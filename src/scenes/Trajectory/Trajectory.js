@@ -1,99 +1,35 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Typography } from '@material-ui/core'
-import _ from 'lodash/fp'
 import * as d3 from 'd3'
 
 import { fetchCounts } from '../../shared/services/counts'
 import Page from '../../shared/components/Page/Page'
 
-const LIMIT = 7
+import useProcessor from './helpers/processor'
+import cleanupData from './helpers/data-cleanup'
+import AxisX from './components/AxisX/AxisX'
+import AxisY from './components/AxisY/AxisY'
 
 export default function Trajectory() {
   const [ data, setData ] = useState(null)
+  window.page_data = data
 
   useEffect(() => {
-    fetchCounts('states').then((data) => {
-      setData(_.flow([
-        _.groupBy('state'),
-        _.mapValues(processData),
-        _.set('_', _.flow([
-          _.groupBy('date'),
-          _.values,
-          _.map((items) => ({
-            date: items[0].date,
-            cases: _.flow([
-              _.map(_.get('cases')),
-              _.sum,
-            ])(items),
-            deaths: _.flow([
-              _.map(_.get('deaths')),
-              _.sum,
-            ])(items),
-          })),
-          // _.filter((item) => item.cases > 20),
-          processData,
-        ])(data)),
-      ])(data))
-    })
+    fetchCounts('states').then(
+      (data) => setData(cleanupData(data, [ '_', 'Nevada' ])),
+    )
   }, [])
 
   const {
     width,
     height,
+    margin,
+    xScale,
+    yScale,
     makeLine,
     color,
-    // xTicks,
-    // yTicks,
-    // xFormat,
-    // yFormat,
     master,
-  } = useMemo(() => {
-    if (!data) return {}
-
-    const master = data._
-
-    const width = 864
-    const height = Math.round(width * ((Math.sqrt(5) - 1) / 2))
-    const margin = { top: 20, right: 20, bottom: 30, left: 40 }
-
-    const getX = (point) => Math.max(point.total, 1)
-    const getY = (point) => Math.max(point.growth, 1)
-
-    const xScale = d3.scaleLog()
-      .domain([ 1, d3.max(master, getX) ])
-      .range([ margin.left, width - margin.right ])
-
-    const yScale = d3.scaleLog()
-      .domain([ 1, d3.max(master, getY) ])
-      .range([ height - margin.bottom, margin.top ])
-
-    const makeLine = d3.line()
-      .curve(d3.curveCatmullRom)
-      .x((point) => xScale(getX(point)))
-      .y((point) => yScale(getY(point)))
-
-    const color = d3.scaleOrdinal()
-      .domain(Object.keys(data))
-      .range(d3.schemeCategory10)
-
-    const xTicks = xScale.ticks(10)
-    const yTicks = yScale.ticks(10)
-
-    const xFormat = xScale.tickFormat(10)
-    const yFormat = yScale.tickFormat(10)
-
-    return {
-      width,
-      height,
-      makeLine,
-      color,
-      xTicks,
-      yTicks,
-      xFormat,
-      yFormat,
-      master,
-    }
-  }, [ data ])
+  } = useProcessor(data)
 
   if (!data) return null
 
@@ -102,12 +38,26 @@ export default function Trajectory() {
   return (
     <Page title="Growth Per Infection">
       <svg viewBox={[ 0, 0, width, height ]}>
-        {Object.entries(data).map(([ state, data ]) => (
+        <AxisX
+          scale={xScale}
+          width={width}
+          height={height}
+          margin={margin}
+          label="Current Infections"
+        />
+        <AxisY
+          scale={yScale}
+          width={width}
+          height={height}
+          margin={margin}
+          label="New Infections"
+        />
+        {Object.entries(data).map(([ id, data ]) => (
           <path
-            key={state}
-            state={state}
+            key={id}
+            id={id}
             fill="none"
-            stroke={color(state)}
+            stroke={color(id)}
             strokeWidth="2.5"
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -122,64 +72,6 @@ export default function Trajectory() {
   )
 }
 
-function processData(data) {
-  const firstIndex = LIMIT === 7 ? _.findIndex(({ date }) => date.getDay() === 0, data) : 0
-  const lastIndex = firstIndex + LIMIT * Math.floor((data.length - firstIndex) / LIMIT)
-
-  let lastCasesCache = null
-
-  const counts = _.flow([
-    _.slice(firstIndex, lastIndex + 1),
-    _.filter(isNth(LIMIT)),
-    _.map(({ date, cases }) => {
-      if (lastCasesCache === null) {
-        lastCasesCache = cases
-        return null
-      }
-
-      const lastCases = lastCasesCache
-      lastCasesCache = cases
-
-      return {
-        date,
-        total: cases,
-        growth: cases - lastCases,
-      }
-    }),
-    _.compact,
-  ])(data)
-
-  const extrapolated = lastIndex < data.length - 1 && (() => {
-    const previous = _.last(counts)
-    const point = _.last(data)
-
-    const correction = LIMIT / (data.length - lastIndex - 1)
-    const growth = point.cases - previous.total
-    const projectedGrowth = growth * correction
-
-    return _.compact([
-      {
-        date: point.date,
-        total: point.cases,
-        growth: previous.growth * (1 - 1 / correction) + growth,
-        type: 'intermediate',
-      },
-      false && {
-        date: new Date(previous.date.valueOf() + LIMIT * 24 * 60 * 60 * 1000),
-        total: previous.total + projectedGrowth,
-        growth: projectedGrowth,
-        type: 'extrapolated',
-      },
-    ])
-  })()
-
-  return extrapolated ? _.concat(counts, extrapolated) : counts
-}
-
-function getLength(path) {
-  return d3.create('svg:path').attr('d', path).node().getTotalLength()
-}
-
 function animate(makeLine, data, master) {
   const end = getLength(makeLine(data))
 
@@ -192,7 +84,8 @@ function animate(makeLine, data, master) {
 
   const ease = d3.scaleLinear()
     .domain(data.map((point) => fromDate(point.date)))
-    .range(data.map((point, index) => fromLength(getLength(makeLine(data.slice(0, index))))))
+    .range(data.map((point, index) => fromLength(getLength(makeLine(data.slice(0, index + 1))))))
+    .clamp(true)
 
   return (ref) => {
     if (ref) {
@@ -206,7 +99,6 @@ function animate(makeLine, data, master) {
   }
 }
 
-function isNth(n) {
-  let i = 0
-  return () => i++ % n === 0
+function getLength(path) {
+  return d3.create('svg:path').attr('d', path).node().getTotalLength()
 }
