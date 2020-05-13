@@ -33,6 +33,13 @@ export default function useProcessor(data) {
       .x((point) => xScale(getX(point)))
       .y((point) => yScale(getY(point)))
 
+    const makePoint = (point) => ({
+      cx: xScale(getX(point)),
+      cy: yScale(getY(point)),
+    })
+
+    const makeTransform = (point) => `translate(${xScale(getX(point))},${yScale(getY(point))})`
+
     const color = d3.scaleOrdinal()
       .domain(Object.keys(data))
       .range(d3.schemeCategory10)
@@ -44,6 +51,8 @@ export default function useProcessor(data) {
       xScale,
       yScale,
       makeLine,
+      makePoint,
+      makeTransform,
       color,
       master,
     }

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 
-const LIMIT = 7
+const DAYS = 7
 
 export default function cleanupData(data, groupBy, filter, pick) {
   return _.flow([
@@ -60,14 +60,13 @@ function makeDaily(data) {
 }
 
 function processData(data) {
-  const firstIndex = LIMIT === 7 ? _.findIndex(({ date }) => date.getDay() === 0, data) : 0
-  const lastIndex = firstIndex + LIMIT * Math.floor((data.length - firstIndex) / LIMIT)
+  const firstIndex = DAYS === 7 ? _.findIndex(({ date }) => date.getDay() === 6, data) : 0
+  const lastIndex = firstIndex + DAYS * Math.floor((data.length - firstIndex - 1) / DAYS)
 
   let lastCases = null
-
   const counts = _.flow([
     _.slice(firstIndex, lastIndex + 1),
-    _.filter(isNth(LIMIT)),
+    _.filter(isNth(DAYS)),
     _.map(({ date, cases: total }) => {
       if (lastCases === null) {
         lastCases = total
@@ -89,7 +88,8 @@ function processData(data) {
     const previous = _.last(counts)
     const point = _.last(data)
 
-    const correction = LIMIT / (data.length - lastIndex - 1)
+    const days = (data.length - lastIndex - 1)
+    const correction = DAYS / days
     const growth = point.cases - previous.total
     const projectedGrowth = growth * correction
 
@@ -101,7 +101,7 @@ function processData(data) {
         type: 'intermediate',
       },
       {
-        date: new Date(previous.date.valueOf() + LIMIT * 24 * 60 * 60 * 1000),
+        date: new Date(previous.date.valueOf() + DAYS * 24 * 60 * 60 * 1000),
         total: previous.total + projectedGrowth,
         growth: projectedGrowth,
         type: 'extrapolated',
