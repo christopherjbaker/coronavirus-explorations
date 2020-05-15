@@ -2,64 +2,7 @@ import _ from 'lodash/fp'
 
 const DAYS = 7
 
-export default function cleanupData(data, groupBy, filter, pick) {
-  return _.flow([
-    _.filter((row) => row.county !== 'Unknown'),
-    _.isFunction(filter) ? _.filter(filter) : _.identity,
-    _.groupBy(groupBy),
-    _.isArray(pick) ? _.pick(pick) : _.identity,
-    _.isFunction(pick) ? _.pickBy(pick) : _.identity,
-    _.mapValues(makeDaily),
-    _.mapValues(processData),
-    _.set('_', _.flow([
-      _.isFunction(filter) ? _.filter(filter) : _.identity,
-      _.groupBy('date'),
-      _.values,
-      _.map((items) => ({
-        date: items[0].date,
-        cases: _.flow([
-          _.map(_.get('cases')),
-          _.sum,
-        ])(items),
-        deaths: _.flow([
-          _.map(_.get('deaths')),
-          _.sum,
-        ])(items),
-      })),
-      // _.filter((item) => item.cases > 20),
-      processData,
-    ])(data)),
-  ])(data)
-}
-
-const DAY = 24 * 60 * 60 * 1000
-function makeDaily(data) {
-  return _.reduce((data, item) => {
-    if (!data.length) {
-      return [ item ]
-    }
-
-    const last = _.last(data)
-    const start = last.date.valueOf()
-    const end = item.date.valueOf()
-
-    if (end - start === DAY) {
-      return _.concat(data, item)
-    }
-
-    return _.flow([
-      () => _.rangeStep(DAY, start + DAY, end),
-      _.map((date) => ({
-        ...last,
-        date: new Date(date),
-      })),
-      _.concat(_, item),
-      _.concat(data),
-    ])()
-  }, [], data)
-}
-
-function processData(data) {
+export default function processDataWeekly(data) {
   const firstIndex = DAYS === 7 ? _.findIndex(({ date }) => date.getDay() === 6, data) : 0
   const lastIndex = firstIndex + DAYS * Math.floor((data.length - firstIndex - 1) / DAYS)
 
@@ -88,7 +31,7 @@ function processData(data) {
     const previous = _.last(counts)
     const point = _.last(data)
 
-    const days = (data.length - lastIndex - 1)
+    const days = data.length - lastIndex - 1
     const correction = DAYS / days
     const growth = point.cases - previous.total
     const projectedGrowth = growth * correction

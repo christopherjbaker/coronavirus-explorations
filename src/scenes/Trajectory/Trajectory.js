@@ -6,8 +6,8 @@ import * as d3 from 'd3'
 import { fetchCounts } from '../../shared/services/counts'
 import Page from '../../shared/components/Page/Page'
 
-import useProcessor from './helpers/processor'
-import cleanupData from './helpers/data-cleanup'
+import useCharting from './helpers/charting'
+import processData from './helpers/process'
 import AxisX from './components/AxisX/AxisX'
 import AxisY from './components/AxisY/AxisY'
 
@@ -30,7 +30,7 @@ export default function Trajectory() {
 
   useEffect(() => {
     fetchCounts('counties').then(
-      (data) => setData(cleanupData(
+      (data) => setData(processData(
         data,
         (row) => `${row.state}, ${row.county}`,
         (row) => row.state === 'Nevada',
@@ -49,7 +49,7 @@ export default function Trajectory() {
     makeTransform,
     color,
     master,
-  } = useProcessor(data)
+  } = useCharting(data)
 
   if (!data) return null
 
@@ -116,9 +116,9 @@ export default function Trajectory() {
                   fill="white"
                   stroke={color(label)}
                   strokeOpacity={point.type === 'extrapolated' ? 0.5 : null}
-                  strokeWidth={2}
+                  strokeWidth={1}
                   transform={makeTransform(point)}
-                  r={3}
+                  r={1.5}
                 />
               ))}
             </g>
