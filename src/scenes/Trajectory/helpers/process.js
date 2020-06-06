@@ -10,7 +10,10 @@ export default function processData(data, groupBy, filter, pick) {
     makeDaily,
     makeRollingWeekly,
     processIntervals,
-    _.filter((point) => point.total >= 25),
+    (data) => {
+      const index = data.findIndex((point) => point.total >= 25)
+      return _.slice(index, data.length, data)
+    },
   ])
 
   return _.flow([
