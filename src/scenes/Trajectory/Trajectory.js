@@ -63,7 +63,7 @@ export default function Trajectory() {
           width={width}
           height={height}
           margin={margin}
-          label="Current Infections"
+          label="Total Infections"
         />
         <AxisY
           scale={yScale}

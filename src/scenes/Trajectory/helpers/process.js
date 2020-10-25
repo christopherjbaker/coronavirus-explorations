@@ -2,16 +2,15 @@ import _ from 'lodash/fp'
 
 import processIntervals from './process-daily'
 
-const DAYS = 7
 const DAY = 24 * 60 * 60 * 1000
 
 export default function processData(data, groupBy, filter, pick) {
   const process = _.flow([
     makeDaily,
-    makeRollingWeekly,
+    makeRolling(7 * 3),
     processIntervals,
     (data) => {
-      const index = data.findIndex((point) => point.total >= 25)
+      const index = data.findIndex((point) => point.total >= 1000)
       return _.slice(index, data.length, data)
     },
   ])
@@ -40,7 +39,7 @@ export default function processData(data, groupBy, filter, pick) {
 function makeDaily(data) {
   return _.reduce((data, item) => {
     if (!data.length) {
-      return [ item ]
+      return [item]
     }
 
     const last = _.last(data)
@@ -63,18 +62,18 @@ function makeDaily(data) {
   }, [], data)
 }
 
-function makeRollingWeekly(data) {
-  return _.reduce(({ data, history }, item) => {
-    history = history.concat(item).slice(-DAYS)
+function makeRolling(days) {
+  return (data) => _.reduce(({ data, history }, item) => {
+    history = history.concat(item).slice(-days)
 
-    if (history.length < DAYS) {
+    if (history.length < days) {
       return { data, history }
     }
 
     data = data.concat({
       date: item.date,
-      cases: _.sumBy('cases', history) / DAYS,
-      deaths: _.sumBy('deaths', history) / DAYS,
+      cases: _.sumBy('cases', history) / days,
+      deaths: _.sumBy('deaths', history) / days,
     })
 
     return { data, history }
