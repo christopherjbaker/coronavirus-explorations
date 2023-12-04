@@ -1,5 +1,5 @@
-import useTrueCases from './true-cases'
-import useTimeToDouble from './time-to-double'
+import useTrueCases from './model/true-cases'
+import useTimeToDouble from './model/time-to-double'
 
 export default function useModel(sample, population, data) {
   const nToday = useTrueCases(data)

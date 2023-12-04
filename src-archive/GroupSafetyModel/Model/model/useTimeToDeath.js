@@ -1,4 +1,4 @@
-import average from '../helpers/weighted-arithmetic-mean'
+import { meanArithmetic } from '../helpers/means'
 
 const data = [
   {
@@ -56,5 +56,5 @@ const data = [
 ]
 
 export default function useTimeToDeath() {
-  return average(data, 'mean')
+  return meanArithmetic(data, 'mean')
 }

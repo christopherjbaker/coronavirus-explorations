@@ -1,4 +1,4 @@
-import average from '../helpers/weighted-arithmetic-mean'
+import { meanArithmetic } from '../helpers/means'
 
 const data = [
   {
@@ -74,5 +74,5 @@ const data = [
 ]
 
 export default function useTimeToDouble() {
-  return average(data, 'mean')
+  return meanArithmetic(data, 'mean')
 }

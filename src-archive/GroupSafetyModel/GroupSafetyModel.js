@@ -7,7 +7,7 @@ import { Alert } from '@material-ui/lab'
 import { Grid, InputAdornment, TextField, Typography } from '@material-ui/core'
 
 import { toNumber } from '../../helpers/transforms'
-import { useModel } from '../../components/ModelProvider/ModelProvider'
+import { useModel } from './Model'
 import Icon from '../../components/Icon/Icon'
 
 import RecommendationDetails from './components/RecommendationDetails/RecommendationDetails'
@@ -49,13 +49,13 @@ const useStyles = makeStyles(() => ({
 export default function Recommendations() {
   const classes = useStyles()
 
-  const [ dialog, setDialog ] = useState(null)
+  const [dialog, setDialog] = useState(null)
 
-  const [ risk, setRisk ] = useState(1)
-  const [ sample, setSample ] = useState(120)
-  const [ population, setPopulation ] = useState(248853)
-  const [ cases, setCases ] = useState(12)
-  const [ deaths, setDeaths ] = useState(1)
+  const [risk, setRisk] = useState(1)
+  const [sample, setSample] = useState(120)
+  const [population, setPopulation] = useState(248853)
+  const [cases, setCases] = useState(12)
+  const [deaths, setDeaths] = useState(1)
 
   const pCases = useModel(sample, population, { cases, deaths })
 
@@ -207,7 +207,7 @@ export default function Recommendations() {
 
 
 function CommaNumberInput({ inputRef, onBlur, onFocus, value, ...props }) {
-  const [ editing, setEditing ] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   return editing ? (
     <input
